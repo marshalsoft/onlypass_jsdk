@@ -1,0 +1,24 @@
+{
+    "name": "onlypass_javascript_sdk",
+    "version": "1.0.0",
+    "description": "All in one payment solution",
+    "main": "index.js",
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/marshalsoft/onlypass_js_plugin.git"
+    },
+    "keywords": [
+      "payment",
+      "all-in-one"
+    ],
+    "author": "Onlypass developer",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/marshalsoft/onlypass_js_plugin/issues"
+    },
+    "homepage": "https://github.com/marshalsoft/onlypass_js_plugin#readme"
+  }
+  
