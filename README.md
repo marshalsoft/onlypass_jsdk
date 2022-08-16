@@ -2,10 +2,11 @@
 
 ## INSTALLATION
 ```
-import OnlyPass from 'onlypass-sdk';
+npm i onlypass-sdk;
 ```
 ## USAGE
 ```
+import OnlyPass from 'onlypass-sdk';
 const OnlyPassInstance = OnlyPass("onlypas api key","merchant ID");
 
 // get the list of payment channels

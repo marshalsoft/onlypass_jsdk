@@ -1,6 +1,6 @@
 {
   "name": "onlypass-sdk",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Onlypass Plugin",
   "main": "index.js",
   "scripts": {
@@ -19,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/marshalsoft/onlypass_jsdk/issues"
   },
-  "homepage": "https://github.com/marshalsoft/onlypass_jsdk#readme"
+  "homepage": "https://github.com/marshalsoft/onlypass_jsdk#readme",
+  "dependencies": {
+    "onlypass-sdk": "^1.0.1"
+  }
 }
