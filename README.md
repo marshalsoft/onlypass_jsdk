@@ -1,5 +1,7 @@
 ## ONLYPASS PAYMENT SDK
-
+### Screenshots
+![alt text](images/Screenshot1.png)
+![alt text](images/Screenshot2.png)
 ### INSTALLATION
 ```
 npm i onlypass-sdk;
