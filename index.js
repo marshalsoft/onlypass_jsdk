@@ -1,4 +1,4 @@
-const OnlyPass = (apiKey,merchantId)=>{
+const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
   const UniqueID = (d,prefix = "")=> {
     var text = "";
     if(d == undefined)
@@ -15,7 +15,7 @@ const OnlyPass = (apiKey,merchantId)=>{
     }
     return prefix+text;
   }
-const BaseUrl = "https://devapi.onlypassafrica.com/api/v1/external/payments";
+var BaseUrl = "https://api.onlypassafrica.com/api/v1/external/payments";
 const APICall = async (
     body = {},
     url = BaseUrl)=>{
@@ -112,6 +112,10 @@ const AddHeader = ()=>{
 }
   const InitPayment = async()=>{
     AddHeader();
+    if(isDemo)
+    {
+      BaseUrl = String(BaseUrl).replace("devapi.","api.");
+    }
     const ch = await APICall({},BaseUrl+"/channels");
     return ch
   }
@@ -119,7 +123,6 @@ const AddHeader = ()=>{
   const PayNow = async(
     amount = 0,
     memo = "",
-    isDemo = true,
     gatewayId = "1",
     email = "",
     phone_number = "",
@@ -136,7 +139,7 @@ const AddHeader = ()=>{
            amount:amount,
            isDemo:isDemo
      })
-    console.log("PayNow:",res)
+    
      if(res.status)
        {
        gateWayObj = Object.assign(res.data,{
@@ -152,6 +155,7 @@ const AddHeader = ()=>{
          gatewayName:String(gatewayName).toLowerCase(),
          publicKey:publicKey
        })
+       console.log("PayNow:",gateWayObj)
        if(gateWayObj.gatewayName == "paystack")
        {
          PayWithPaystack(gateWayObj);

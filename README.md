@@ -1,13 +1,18 @@
 ## ONLYPASS PAYMENT SDK
 
-## INSTALLATION
+### INSTALLATION
 ```
 npm i onlypass-sdk;
 ```
-## USAGE
+### USAGE
 ```
 import OnlyPass from 'onlypass-sdk';
-const OnlyPassInstance = OnlyPass("onlypas api key","merchant ID");
+```
+- **onlypas api key** - This can be gotten from Onlypass dashboard setting section
+- **Platform ID** - This can be gotten from Onlypass dashboard setting section
+- **isDemo** - default is true
+```
+const OnlyPassInstance = OnlyPass("onlypas api key","Platform ID",isDemo);
 
 // get the list of payment channels
 
@@ -16,17 +21,17 @@ OnlyPassInstance.Channels().then(({data,status})=>{
     if(status)
     {
     var channel = data[0];
-    // call payment function
+    
+    // call payment function here
     OnlyPassInstance.PayNow(
         2000,
         "Payment for shoes",
-        true,
         channel.gatewayId,
         "me@onlypass.com",
-        "08161235924",
-        "flutterwave",
+        "08000000000",
+        channel.gateway.name,
         "NGN",
-        channel.publicKey)
+        channel.testPublicKey || channel.livePublicKey)
     }
 })
 ```

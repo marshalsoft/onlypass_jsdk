@@ -3,7 +3,8 @@ declare module 'onlypass-sdk' {
          merchantPaymentGatewayId: number;
          merchantId: number;
          gatewayId: number;
-         publicKey: string;
+         livePublicKey: string;
+         testPublicKey: string;
          status: string;
          createdAt: string;
          updatedAt: string;
@@ -24,17 +25,17 @@ declare module 'onlypass-sdk' {
          status?:boolean,
          message?:string
      }
- const OnlyPass:(apiKey: string, merchantId: string) => {
+ const OnlyPass:(apiKey: string, merchantId: string,
+    isDemo?: boolean ) => {
      PayNow:(
          amount?: number, 
          memo?: string, 
-         isDemo?: boolean, 
          gatewayId?: number, 
          email?: string, 
          phone_number?: string, 
          gatewayName?: string, 
          currency?: string, 
-         publicKey?: string, 
+         gatewayKey?: string, 
          callback?: () => void) => Promise<any>;
          Channels: () => Promise<APIResponse>;
  }
