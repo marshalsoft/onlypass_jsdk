@@ -112,10 +112,6 @@ const AddHeader = ()=>{
 }
   const InitPayment = async()=>{
     AddHeader();
-    if(isDemo)
-    {
-      BaseUrl = String(BaseUrl).replace("devapi.","api.");
-    }
     const ch = await APICall({},BaseUrl+"/channels");
     return ch
   }
