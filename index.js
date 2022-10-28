@@ -127,7 +127,7 @@ const AddHeader = ()=>{
     publicKey = "",
     callback = ()=>{}
    )=>{
-   let refNo = UniqueID(20,"OnlyP-");
+   let refNo = UniqueID(20,"OnlyPass-");
    let gateWayObj = {}
    const res = await APICall({
            gatewayId:gatewayId,
