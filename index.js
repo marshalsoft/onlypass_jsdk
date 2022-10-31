@@ -1,4 +1,4 @@
-const env = "test";
+const env = "live";
 (function(){
 const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
   const UniqueID = (d,prefix = "")=> {
