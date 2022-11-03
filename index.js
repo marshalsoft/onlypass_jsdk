@@ -1,5 +1,5 @@
 const env = "live";
-(function(){
+// (function(){
 const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
   const UniqueID = (d,prefix = "")=> {
     var text = "";
@@ -190,6 +190,6 @@ const AddHeader = ()=>{
     Channels:()=>InitPayment()
   }
 }
-// export default OnlyPass;
-window.OnlyPass = OnlyPass;
-})(window)
+export default OnlyPass;
+// window.OnlyPass = OnlyPass;
+// })(window)
