@@ -33,6 +33,8 @@ declare module 'onlypass-sdk' {
          gatewayId?: number, 
          email?: string, 
          phone_number?: string, 
+         firstname?: string, 
+         lastname?: string, 
          gatewayName?: string, 
          currency?: string, 
          gatewayKey?: string, 

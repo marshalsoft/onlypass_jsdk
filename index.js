@@ -24,18 +24,19 @@ if(env == "test")
 }
 const APICall = async (
     body = {},
-    url = BaseUrl)=>{
+    url = BaseUrl,method = "POST")=>{
     var myHeaders = new Headers();
     myHeaders.append("x-api-key",apiKey);
     myHeaders.append("x-platform-id",merchantId);
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Accept", "application/json");
     var requestOptions = {
-      method:'POST',
+      method:method,
       headers:myHeaders,
       redirect:'follow',
       body:JSON.stringify(body)
     };
+    console.log(apiKey,"|",merchantId);
     var response = await fetch(url, requestOptions)
     const data = await response.json()
     return data;
@@ -43,6 +44,9 @@ const APICall = async (
 const ModalScreen = ()=>{
 // var Modal = $("<div >",{id:"mID",width:"100%",height:"100%",display:"flex",backgroundColor:"red"});
 // $("#mID").html(Modal).show();
+}
+const AbortCalll = async(formObj)=>{
+  await APICall({},`${BaseUrl}/${formObj.onlyPassReference}`,"PUT");
 }
 const PayWithPaystack = (gateWayObj)=>{
   const d = {
@@ -53,9 +57,10 @@ const PayWithPaystack = (gateWayObj)=>{
     ref:`${gateWayObj.onlyPassReference}`,
     callback:function(response) {
       // callback(response)
+      SuccessCall(gateWayObj);
     },
     onClose: function() {
-      // callback(null)
+      AbortCalll(gateWayObj);
     }
   }
  var handler = window.PaystackPop.setup(d);
@@ -77,10 +82,9 @@ const PayWithFlutterwave = (gateWayObj)=>
       email:`${gateWayObj.email}`
       },
       callback: function (data) {
-        
       },
       onclose: function() {
-
+        AbortCalll(gateWayObj);
       }
     }
     // alert(JSON.stringify(d));
@@ -89,7 +93,9 @@ const PayWithFlutterwave = (gateWayObj)=>
  }
  const PayWithSquad = (gateWayObj)=>{
   const squadInstance = new squad({
-    onClose: () =>{ },
+    onClose: () =>{
+      AbortCalll(gateWayObj);
+     },
     onLoad: () => { },
     onSuccess: (response) =>{ },
     key: `${gateWayObj.publicKey}`,
@@ -103,6 +109,27 @@ const PayWithFlutterwave = (gateWayObj)=>
 squadInstance.setup();
 squadInstance.open();
  }
+ const PayWithBani = (gateWayObj)=>{
+ const sendQuery = {
+  amount:parseInt(gateWayObj.amountToPay), 
+  phoneNumber:`+234${parseInt(gateWayObj.phone_number)}`,
+  email:`${gateWayObj.email}`,
+  firstName:`${gateWayObj.firstname}`,
+  lastName:`${gateWayObj.lastname}`, 
+  merchantKey:`${gateWayObj.publicKey}`, 
+  metadata: "", 
+  onClose: (response) => {
+      console.log("ONCLOSE DATA",response)
+      AbortCalll(gateWayObj);
+  },
+  callback: function (response) {
+      let message = 'Payment complete! Reference: ' + response?.reference
+      console.log(message, response)
+  }
+}
+console.log(sendQuery);
+  BaniPopUp(sendQuery);
+ }
 const AddHeader = ()=>{
   var gatewaylist = [];
   gatewaylist.push("https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js");
@@ -111,6 +138,7 @@ const AddHeader = ()=>{
   gatewaylist.push("https://checkout.flutterwave.com/v3.js");
   gatewaylist.push("https://pay.voguepay.com/js/voguepay.js");
   gatewaylist.push("https://checkout.squadco.com/widget/squad.min.js");
+  gatewaylist.push("https://bani-assets.s3.eu-west-2.amazonaws.com/static/widget/js/window.js");
     const modal = document.createElement("div");
     modal.setAttribute("id","mID")
     modal.style.display = "none";
@@ -140,6 +168,8 @@ const AddHeader = ()=>{
     gatewayId = "1",
     email = "",
     phone_number = "",
+    firstname = "",
+    lastname = "",
     gatewayName = "Paystack",
     currency = "NGN",
     publicKey = "",
@@ -165,6 +195,8 @@ const AddHeader = ()=>{
          memo:memo,
          email:email,
          phone_number:phone_number,
+         firstname:firstname,
+         lastname:lastname,
          currency:currency,
          gatewayName:String(gatewayName).toLowerCase(),
          publicKey:publicKey
@@ -179,6 +211,9 @@ const AddHeader = ()=>{
       }else if(gateWayObj.gatewayName == "squad")
       {
         PayWithSquad(gateWayObj);
+      }else if(gateWayObj.gatewayName == "bani")
+      {
+        PayWithBani(gateWayObj);
       }
      }
      
