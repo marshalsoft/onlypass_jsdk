@@ -1,6 +1,6 @@
-const env = "live";
+const env = "test";
 // (function(){
-const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
+const OnlyPass = (apiKey,merchantId,formId = null,isDemo = true,webhookUrl = "")=>{
   const UniqueID = (d,prefix = "")=> {
     var text = "";
     if(d == undefined)
@@ -17,15 +17,38 @@ const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
     }
     return prefix+text;
   }
-var BaseUrl = "https://api.onlypassafrica.com/api/v1/external/payments";
+window.BaseUrl = "https://api.onlypassafrica.com/api/v1/external/payments";
 if(env == "test")
 {
-  BaseUrl = String(BaseUrl).replace("api.","devapi.");
+  window.BaseUrl = String(window.BaseUrl).replace("api.","devapi.");
 }
-const APICall = async (
+const APICall = (
     body = {},
-    url = BaseUrl,method = "POST")=>{
+    url,method = "POST")=>{
+    return new Promise((resolve)=>{
+    const returnParams = (url)=>{
+      let params = url;
+      return params;
+    }
     var myHeaders = new Headers();
+    if(String(method).toUpperCase() == "GET")
+  {
+  url = returnParams(window.BaseUrl+url);
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Accept", "application/json");
+  myHeaders.append("x-api-key", apiKey);
+  myHeaders.append("x-platform-id", merchantId);
+  window.apiKey = apiKey;
+  window.merchantId = merchantId;
+  var requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow'
+  };
+  fetch(url, requestOptions).then((res)=>res.json()).then((res)=>{
+  resolve(res);
+  })
+    }else{
     myHeaders.append("x-api-key",apiKey);
     myHeaders.append("x-platform-id",merchantId);
     myHeaders.append("Content-Type", "application/json");
@@ -36,61 +59,21 @@ const APICall = async (
       redirect:'follow',
       body:JSON.stringify(body)
     };
-    console.log(apiKey,"|",merchantId);
-    var response = await fetch(url, requestOptions)
-    const data = await response.json()
-    return data;
+    fetch(url, requestOptions).then((res)=>res.json()).then((res)=>{
+    resolve(res);
+    }).catch((res)=>{
+      resolve(res);
+    })
+  }
+    })
 }
 const ModalScreen = ()=>{
 // var Modal = $("<div >",{id:"mID",width:"100%",height:"100%",display:"flex",backgroundColor:"red"});
 // $("#mID").html(Modal).show();
 }
 const AbortCalll = async(formObj)=>{
-  await APICall({},`${BaseUrl}/${formObj.onlyPassReference}`,"PUT");
+  await APICall({},`${window.BaseUrl}/${formObj.onlyPassReference}`,"PUT");
 }
-const PayWithPaystack = (gateWayObj)=>{
-  const d = {
-    key:`${gateWayObj.publicKey}`,
-    email:`${gateWayObj.email}`,
-    amount:parseInt(gateWayObj.amountToPay)*100,
-    currency:`${gateWayObj.currency}`,
-    ref:`${gateWayObj.onlyPassReference}`,
-    callback:function(response) {
-      // callback(response)
-      SuccessCall(gateWayObj);
-    },
-    onClose: function() {
-      AbortCalll(gateWayObj);
-    }
-  }
- var handler = window.PaystackPop.setup(d);
-  handler.openIframe();
-  // alert(JSON.stringify(d))
- }
-const PayWithFlutterwave = (gateWayObj)=>
- {
-   var d = {
-    public_key:`${gateWayObj.publicKey}`,
-    tx_ref:`${gateWayObj.onlyPassReference}`,
-    amount:gateWayObj.amountToPay,
-    currency:`${gateWayObj.currency}`,
-    country: "NG",
-    payment_options:"card,mobilemoney,ussd,banktransfer,paga,qr,mpesa,account",
-    redirect_url:'',
-      meta: {},
-      customer: {
-      email:`${gateWayObj.email}`
-      },
-      callback: function (data) {
-      },
-      onclose: function() {
-        AbortCalll(gateWayObj);
-      }
-    }
-    // alert(JSON.stringify(d));
-    FlutterwaveCheckout(d);
-    // ModalScreen()
- }
  const PayWithSquad = (gateWayObj)=>{
   const squadInstance = new squad({
     onClose: () =>{
@@ -131,6 +114,7 @@ console.log(sendQuery);
   BaniPopUp(sendQuery);
  }
 const AddHeader = ()=>{
+  return new Promise((resolve)=>{
   var gatewaylist = [];
   gatewaylist.push("https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js");
   gatewaylist.push("https://js.paystack.co/v1/inline.js");
@@ -147,21 +131,311 @@ const AddHeader = ()=>{
     modal.style.position = "absolute";
     modal.style.margin = "2.5%";
     modal.setAttribute("class","card");
-    window.onload = function() {
+    window.onload = function(){
       gatewaylist.forEach((a,i)=>{
         const jq = document.createElement("script");
         jq.setAttribute("src",a);
         document.body.prepend(jq);
       })
     document.body.appendChild(modal);
-    return null;
+    const onlyIframe = document.createElement("IFRAME");
+      onlyIframe.style.position = "fixed";
+      onlyIframe.style.top = "0px";
+      onlyIframe.style.left = "0px";
+      onlyIframe.style.width = "100%";
+      onlyIframe.style.height = "100%";
+      onlyIframe.style.background = "white";
+      onlyIframe.style.border = "0px";
+      onlyIframe.style.display = "none";
+      onlyIframe.setAttribute("id","onlyIframe");
+      document.body.appendChild(onlyIframe)
+    const scp = document.createElement("script");
+    scp.innerHTML = `function toggle(i){
+      const allBtns = document.querySelectorAll(".onlypass_btn");
+      allBtns.forEach((a,o)=>{
+        const wrp = document.getElementById("option"+o);
+        const visible = wrp.style.display;
+        wrp.style.display = i == o?visible == "block"?"none":"block":"none";
+      })
     }
+    function toggleClose(d,i){
+      const amount = document.getElementById("amount");
+      const email = document.getElementById("email");
+      const phone_number = document.getElementById("phone_number");
+      if(!amount)
+      {
+        alert("Oops! input field with id 'amount' required");
+        return;
+      }
+      if(!email)
+      {
+        alert("Oops! input field with id 'email' required");
+        return;
+      }
+      if(!phone_number)
+      {
+        alert("Oops! input field with id 'phone_number' required");
+        return;
+      }
+      if(amount.value == "" | email.value == "" | phone_number.value == "")
+      {
+        alert("Oops! some Input field are empty!");
+        return;
+      }
+      
+      const wrp = document.getElementById("option"+i);
+      wrp.style.display = "none";
+      const obj = convertHexToBinary(d.value);
+      window.PaymentObj = obj;
+      const data = Object.assign(obj,{
+        email:email.value,
+        amount:amount.value,
+        phone_number:phone_number.value
+      })
+      OnlyPassInit(data).then((res)=>{
+      if(!res.status)
+      {
+        alert(res.message);
+      }else if(res.data.securePaymentUrl != "")
+      {
+        const ifrm = document.getElementById("onlyIframe");
+        ifrm.setAttribute("src",res.data.securePaymentUrl);
+        ifrm.style.display = "block";
+      }else if(String(obj.gateway.name).toLowerCase() == "bani")
+      {
+        PayWithBani(data);
+      }else if(String(obj.gateway.name).toLowerCase() == "squad")
+      {
+        PayWithSquad(data);
+      }
+    })
+    }
+    function convertBinaryToHex(s){
+      s = JSON.stringify(s);
+      var i;
+      var l;
+      var o = '';
+      var n;
+      s += '';
+      for (i = 0, l = s.length; i < l; i++) {
+          n = s.charCodeAt(i).toString(16);
+          o += n.length < 2 ? '0' + n : n;
+      }
+      return o;
 }
-  const InitPayment = async()=>{
-    AddHeader();
-    return await APICall({},`${BaseUrl}/channels`);
+function convertHexToBinary(hex){
+      var string = '';
+      for (var i = 0; i < hex.length; i += 2) {
+          string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+      }
+      return JSON.parse(string);
+}
+function OnlyPassInit(data){
+  return new Promise((resolve)=>{
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    myHeaders.append("Accept", "application/json");
+    myHeaders.append("x-api-key",window.apiKey);
+    myHeaders.append("x-platform-id", window.merchantId);
+    var raw = JSON.stringify({
+      "amount":data.amount,
+      "isDemo":window.isDemo,
+      "channelIdentifier":window.PaymentObj.mode.channelIdentifier,
+      "externalReference": UniqueID(34,"ONP-"),
+      "gatewayId": window.PaymentObj.gatewayId,
+      "merchantPaymentGatewayId": window.PaymentObj.merchantPaymentGatewayId,
+      "userEmail":data.email
+    });
+    const options = {
+      method: 'POST',
+      headers: myHeaders,
+      body: raw,
+    }
+    fetch(window.BaseUrl,options).then((res)=>res.json()).then((res)=>{
+    resolve(res)
+  })
+  })
+}
+const UniqueID = (d,prefix = "")=> {
+  var text = "";
+  if(d == undefined)
+  {
+    d = 16;
+  }else{
+    d = parseInt(d);
   }
-  
+  var tm = new Date().getMilliseconds();
+  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  for (var i = 0; i < d; i++)
+  {
+    text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return prefix+text;
+}
+const PayWithSquad = (data)=>{
+  const squadInstance = new squad({
+    onClose: () =>{
+      AbortCalll(data);
+     },
+    onLoad: () => { },
+    onSuccess: (response) =>{ },
+    key:window.PaymentObj.credentials[0].value,
+    email:data.email,
+    amount:parseInt(data.amount)*100,
+    currency_code:"NGN",
+    transaction_ref:UniqueID(20,"ONP-"),
+    payment_channels:['card', 'bank' , 'ussd','bank_transfer'],
+    Customer_name:"client"
+});
+squadInstance.setup();
+squadInstance.open();
+ }
+ const PayWithBani = (data)=>{
+ const sendQuery = {
+  amount:parseInt(data.amountToPay), 
+  phoneNumber:"+234"+parseInt(data.phone_number),
+  email:data.email,
+  firstName:"user",
+  lastName:"user", 
+  merchantKey:window.PaymentObj.credentials[0].value
+  , 
+  metadata: "", 
+  onClose: (response) => {
+      console.log("ONCLOSE DATA",response)
+      // AbortCalll(data);
+  },
+  callback: function (response) {
+      let message = 'Payment complete! Reference: ' + response?.reference
+      console.log(message, response)
+  }
+}
+console.log(sendQuery);
+  BaniPopUp(sendQuery);
+ }
+ const AbortCalll =(d)=>{
+
+ }
+`
+    document.head.appendChild(scp);
+    InitPayment();
+    resolve(null);
+    }
+    })
+}
+
+const InitPayment = (isDemo = true)=>{
+    return APICall({},`/channels?isDemo=${isDemo}`,"GET").then((res)=>{
+      console.log(res)
+      if(formId !== null)
+      {
+        const form = document.getElementById(formId);
+        if(form)
+        {
+          if(form.nodeName !== "FORM")
+          {
+            alert(`${formId} must be a form element`)
+            return ;
+          }
+      if(res.status)
+      {
+        let buttonsWrapper = document.createElement("div");
+        let buttons = `<div style="padding:5px;background: #e8e8e8;
+        border: solid 1px #d5d4d4;border-radius: 5px;position:relative;display: inline-flex;
+        gap: 5px;">
+        <input required type="text" id="gateway_mode" name="gateway_mode" style="position:absolute;opacity:0;" />
+        `;
+        res.data.forEach((a,i)=>{
+         
+            buttons += `<div class="onlypass_btn" style="z-index:9999;">
+            <button 
+            type="button"
+            onclick="toggle('${i}')"
+            style="border: solid 1px #999;
+            padding: 10px 20px;
+            border-radius: 5px;
+            overflow: hidden;
+            background: white;font-weight:bold;"
+            >
+            <img src="${a.gateway.logoUrl}" style="width:30px;object-fit:cover;" /> ${a.gateway.name}
+            </button>
+            <div id="option${i}" style="display:none;position:absolute;
+            top:46px;
+            background:white;
+            border:solid 1px #444;
+            border-radius: 0px 0px 5px 5px;
+            padding:15px;z-index:999;">
+            <ul style="padding:0px;margin:0px;" >
+            ${a.gateway.modes.map((b,o)=>{
+              return `<li style="display:flex;align-items:center;margin-bottom: 10px !important;">
+              <input value="${convertBinaryToHex(Object.assign(a,{mode:b}))}" id="channel${o}" type="radio" name="mode" onchange="toggleClose(this,'${i}')" style="height:18px;width: 18px;" />
+              <label style="padding-left:5px;" for="channel${o}">${String(b.channel).replace("_"," ")}</label>
+              </li>`;
+            }).join("")}
+            </ul>
+            </div>
+            </div>
+            `
+        })
+        buttons += "</div>";
+         buttonsWrapper.innerHTML = buttons;
+         if(String(formId).includes("#"))
+         {
+          formId = String(formId).replace("#","");
+         }
+         window.isDemo = isDemo;
+        form.appendChild(buttonsWrapper);
+      }
+      }
+    }
+    });
+}
+const convertBinaryToHex = (s)=>{
+        s = JSON.stringify(s);
+        var i;
+        var l;
+        var o = '';
+        var n;
+        s += '';
+        for (i = 0, l = s.length; i < l; i++) {
+            n = s.charCodeAt(i).toString(16);
+            o += n.length < 2 ? '0' + n : n;
+        }
+        return o;
+}
+ const convertHexToBinary = (hex)=>{
+        var string = '';
+        for (var i = 0; i < hex.length; i += 2) {
+            string += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+        }
+        return JSON.parse(string);
+}
+window.addEventListener("message",({data})=>{
+  const ifrm = document.getElementById("onlyIframe");
+  if(data.event)
+  {
+    if(data.event == "close")
+    {
+      ifrm.style.display = "none";
+    }else if(data.event == "success")
+    {
+      if(webhookUrl != "")
+      {
+        ifrm.style.display = "none";
+        var OnlPssHeaders = new Headers();
+        OnlPssHeaders.append("Content-Type", "application/json");
+        OnlPssHeaders.append("Accept", "application/json");
+        var raw = JSON.stringify(data.data);
+        var requestOptions = {
+          method: 'POST',
+          headers: OnlPssHeaders,
+          body: raw,
+          redirect: 'follow'
+        };
+        fetch(webhookUrl,requestOptions);
+      }
+    }
+  }
+})
   const PayNow = async(
     amount = 0,
     memo = "",
@@ -219,12 +493,12 @@ const AddHeader = ()=>{
      
     //  callback(gateWayObj);
    }
-   InitPayment();
-  return {
-    PayNow:PayNow,
-    Channels:()=>InitPayment()
-  }
+   AddHeader()
+   window.OnlyPass = {
+    PayNow:PayNow
+   }
 }
+
 export default OnlyPass;
-// window.OnlyPass = OnlyPass;
+
 // })(window)

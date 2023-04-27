@@ -18,15 +18,14 @@ declare module 'onlypass-sdk' {
              updatedAt: string;
          };
      }
-     
-     interface GateWayList extends Array<Gateway>{}
+interface GateWayList extends Array<Gateway>{}
      interface APIResponse {
          data:GateWayList,
          status?:boolean,
          message?:string
      }
  const OnlyPass:(apiKey: string, merchantId: string,
-    isDemo?: boolean ) => {
+    formId:string, isDemo?: boolean,webhookUrl?:string) => {
      PayNow:(
          amount?: number, 
          memo?: string, 
