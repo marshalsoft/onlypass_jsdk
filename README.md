@@ -17,7 +17,7 @@ import OnlyPass from 'onlypass-sdk';
 <form id="formId" >
 <input name="amount" type="number" />
 <input name="email"  type="text" />
-<input name="phoneNumber" type="text" />
+<input name="phone_number" type="text" />
 </form>
 
 constructor()
