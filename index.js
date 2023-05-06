@@ -68,8 +68,7 @@ const APICall = (
     })
 }
 const ModalScreen = ()=>{
-// var Modal = $("<div >",{id:"mID",width:"100%",height:"100%",display:"flex",backgroundColor:"red"});
-// $("#mID").html(Modal).show();
+
 }
 const AbortCalll = async(formObj)=>{
   await APICall({},`${window.BaseUrl}/${formObj.onlyPassReference}`,"PUT");
