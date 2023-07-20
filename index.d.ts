@@ -24,21 +24,16 @@ interface GateWayList extends Array<Gateway>{}
          status?:boolean,
          message?:string
      }
- const OnlyPass:(apiKey: string, merchantId: string,
-    formId:string, isDemo?: boolean,webhookUrl?:string) => {
+ const OnlyPass:(apiKey: string, merchantId: string, isDemo?: boolean) => {
      PayNow:(
          amount?: number, 
          memo?: string, 
-         gatewayId?: number, 
          email?: string, 
          phone_number?: string, 
-         firstname?: string, 
-         lastname?: string, 
+         firstName?: string, 
+         lastName?: string, 
          gatewayName?: string, 
-         currency?: string, 
-         gatewayKey?: string, 
-         callback?: () => void) => Promise<any>;
-         Channels: () => Promise<APIResponse>;
+         currency?: string) => Promise<any>;
  }
  export default OnlyPass;
  }

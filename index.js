@@ -1,6 +1,6 @@
 const env = "test";
 // (function(){
-const OnlyPass = (apiKey,merchantId,formId = null,isDemo = true,webhookUrl = "")=>{
+const OnlyPass = (apiKey,merchantId,isDemo = true)=>{
   const UniqueID = (d,prefix = "")=> {
     var text = "";
     if(d == undefined)
@@ -17,6 +17,9 @@ const OnlyPass = (apiKey,merchantId,formId = null,isDemo = true,webhookUrl = "")
     }
     return prefix+text;
   }
+const ThrowError = (msg)=>{
+  throw new Error(msg);
+}
 window.BaseUrl = "https://api.onlypassafrica.com/api/v1/external/payments";
 if(env == "test")
 {
@@ -82,7 +85,7 @@ const AbortCalll = async(formObj)=>{
     onSuccess: (response) =>{ },
     key: `${gateWayObj.publicKey}`,
     email:`${gateWayObj.email}`,
-    amount:parseInt(gateWayObj.amountToPay)*100,
+    amount:parseInt(gateWayObj.amount)*100,
     currency_code:`${gateWayObj.currency}`,
     transaction_ref:`${gateWayObj.onlyPassReference}`,
     payment_channels:['card', 'bank' , 'ussd','bank_transfer'],
@@ -93,7 +96,7 @@ squadInstance.open();
  }
  const PayWithBani = (gateWayObj)=>{
  const sendQuery = {
-  amount:parseInt(gateWayObj.amountToPay), 
+  amount:parseInt(gateWayObj.amount), 
   phoneNumber:`+234${parseInt(gateWayObj.phone_number)}`,
   email:`${gateWayObj.email}`,
   firstName:`${gateWayObj.firstname}`,
@@ -118,25 +121,27 @@ const AddHeader = ()=>{
   gatewaylist.push("https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js");
   gatewaylist.push("https://js.paystack.co/v1/inline.js");
   gatewaylist.push("https://checkout.flutterwave.com/v3.js");
-  gatewaylist.push("https://checkout.flutterwave.com/v3.js");
-  gatewaylist.push("https://pay.voguepay.com/js/voguepay.js");
   gatewaylist.push("https://checkout.squadco.com/widget/squad.min.js");
   gatewaylist.push("https://bani-assets.s3.eu-west-2.amazonaws.com/static/widget/js/window.js");
     const modal = document.createElement("div");
     modal.setAttribute("id","mID")
     modal.style.display = "none";
-    modal.style.width = "95%";
-    modal.style.height = "95%";
-    modal.style.position = "absolute";
-    modal.style.margin = "2.5%";
-    modal.setAttribute("class","card");
+    modal.style.width = "100%";
+    modal.style.height = "100%";
+    modal.style.position = "fixed";
+    modal.style.alignItems = "center";
+    modal.style.justifyContent = "center";
+    modal.style.backgroundColor = "rgba(0,0,0,0.4)";
+    modal.style.top = "0px";
+    modal.style.left = "0px";
     window.onload = function(){
+    document.body.appendChild(modal);
       gatewaylist.forEach((a,i)=>{
         const jq = document.createElement("script");
         jq.setAttribute("src",a);
         document.body.prepend(jq);
       })
-    document.body.appendChild(modal);
+   
     const onlyIframe = document.createElement("IFRAME");
       onlyIframe.style.position = "fixed";
       onlyIframe.style.top = "0px";
@@ -158,30 +163,6 @@ const AddHeader = ()=>{
       })
     }
     function toggleClose(d,i){
-      const amount = document.getElementById("amount");
-      const email = document.getElementById("email");
-      const phone_number = document.getElementById("phone_number");
-      if(!amount)
-      {
-        alert("Oops! input field with id 'amount' required");
-        return;
-      }
-      if(!email)
-      {
-        alert("Oops! input field with id 'email' required");
-        return;
-      }
-      if(!phone_number)
-      {
-        alert("Oops! input field with id 'phone_number' required");
-        return;
-      }
-      if(amount.value == "" | email.value == "" | phone_number.value == "")
-      {
-        alert("Oops! some Input field are empty!");
-        return;
-      }
-      
       const wrp = document.getElementById("option"+i);
       wrp.style.display = "none";
       const obj = convertHexToBinary(d.value);
@@ -191,23 +172,7 @@ const AddHeader = ()=>{
         amount:amount.value,
         phone_number:phone_number.value
       })
-      OnlyPassInit(data).then((res)=>{
-      if(!res.status)
-      {
-        alert(res.message);
-      }else if(res.data.securePaymentUrl != "")
-      {
-        const ifrm = document.getElementById("onlyIframe");
-        ifrm.setAttribute("src",res.data.securePaymentUrl);
-        ifrm.style.display = "block";
-      }else if(String(obj.gateway.name).toLowerCase() == "bani")
-      {
-        PayWithBani(data);
-      }else if(String(obj.gateway.name).toLowerCase() == "squad")
-      {
-        PayWithSquad(data);
-      }
-    })
+      
     }
     function convertBinaryToHex(s){
       s = JSON.stringify(s);
@@ -229,6 +194,7 @@ function convertHexToBinary(hex){
       }
       return JSON.parse(string);
 }
+
 function OnlyPassInit(data){
   return new Promise((resolve)=>{
     var myHeaders = new Headers();
@@ -274,34 +240,34 @@ const UniqueID = (d,prefix = "")=> {
 const PayWithSquad = (data)=>{
   const squadInstance = new squad({
     onClose: () =>{
-      AbortCalll(data);
+      AbortCalll(data.refNo);
      },
     onLoad: () => { },
     onSuccess: (response) =>{ },
     key:window.PaymentObj.credentials[0].value,
     email:data.email,
-    amount:parseInt(data.amount)*100,
-    currency_code:"NGN",
-    transaction_ref:UniqueID(20,"ONP-"),
+    amount:data.amount * 100,
+    currency_code:data.currency,
+    transaction_ref:data.refNo,
     payment_channels:['card', 'bank' , 'ussd','bank_transfer'],
     Customer_name:"client"
 });
+console.log("Squad",squadInstance);
 squadInstance.setup();
 squadInstance.open();
  }
  const PayWithBani = (data)=>{
  const sendQuery = {
-  amount:parseInt(data.amountToPay), 
-  phoneNumber:"+234"+parseInt(data.phone_number),
+  amount:data.amount, 
+  phoneNumber:"+234"+parseInt(data.mobile),
   email:data.email,
-  firstName:"user",
-  lastName:"user", 
-  merchantKey:window.PaymentObj.credentials[0].value
-  , 
+  firstName:data.firstName,
+  lastName:data.lastName, 
+  merchantKey:window.PaymentObj.credentials[0].value, 
   metadata: "", 
   onClose: (response) => {
       console.log("ONCLOSE DATA",response)
-      // AbortCalll(data);
+      AbortCalll(data.refNo);
   },
   callback: function (response) {
       let message = 'Payment complete! Reference: ' + response?.reference
@@ -311,13 +277,63 @@ squadInstance.open();
 console.log(sendQuery);
   BaniPopUp(sendQuery);
  }
- const AbortCalll =(d)=>{
-
+ const AbortCalll =(onlyPassReference)=>{
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+  myHeaders.append("Accept", "application/json");
+  myHeaders.append("x-api-key",window.apiKey);
+  myHeaders.append("x-platform-id", window.merchantId);
+  var requestOptions = {
+    method: 'GET',
+    headers: myHeaders,
+    redirect: 'follow'
+  };
+  fetch('${window.BaseUrl}/'+onlyPassReference, requestOptions)
  }
-`
-    document.head.appendChild(scp);
-    InitPayment();
-    resolve(null);
+function CallPayment(d){
+  const paymentObj = convertHexToBinary(d);
+  window.PaymentObj = paymentObj;
+  console.log(paymentObj,window.paymentParams);
+  let data = {
+        amount:window.paymentParams.amount,
+        isDemo:window.isDemo,
+        channelIdentifier:paymentObj.mode.channelIdentifier,
+        externalReference:window.paymentParams.refNo,
+        gatewayId: window.PaymentObj.gatewayId,
+        merchantPaymentGatewayId: window.PaymentObj.merchantPaymentGatewayId,
+        email:window.paymentParams.email
+  }
+  OnlyPassInit(data).then((res)=>{
+    console.log(res)
+     data = Object.assign(data,{
+      amount:res.data.amountToPay,
+      firstName:window.paymentParams.firstName,
+      lastName:window.paymentParams.lastName,
+      mobile:window.paymentParams.mobile,
+      currency:window.paymentParams.currency,
+      refNo:window.paymentParams.refNo
+     });
+    if(!res.status)
+    {
+      alert(res.message);
+    }else if(res.data.securePaymentUrl)
+    {
+      const ifrm = document.getElementById("onlyIframe");
+      ifrm.setAttribute("src",res.data.securePaymentUrl);
+      ifrm.style.display = "block";
+    }else if(String(window.PaymentObj.gateway.name).toLowerCase() == "bani")
+    {
+      PayWithBani(data);
+    }else if(String(window.PaymentObj.gateway.name).toLowerCase() == "squad")
+    {
+      PayWithSquad(data);
+    }
+  })
+}`
+
+  document.head.appendChild(scp);
+  InitPayment();
+  resolve(null);
     }
     })
 }
@@ -325,26 +341,14 @@ console.log(sendQuery);
 const InitPayment = (isDemo = true)=>{
     return APICall({},`/channels?isDemo=${isDemo}`,"GET").then((res)=>{
       console.log(res)
-      if(formId !== null)
-      {
-        const form = document.getElementById(formId);
-        if(form)
-        {
-          if(form.nodeName !== "FORM")
-          {
-            alert(`${formId} must be a form element`)
-            return ;
-          }
       if(res.status)
       {
-        let buttonsWrapper = document.createElement("div");
+        
         let buttons = `<div style="padding:5px;background: #e8e8e8;
         border: solid 1px #d5d4d4;border-radius: 5px;position:relative;display: inline-flex;
-        gap: 5px;">
-        <input required type="text" id="gateway_mode" name="gateway_mode" style="position:absolute;opacity:0;" />
-        `;
+        gap: 5px;">`;
+        console.log(buttons);
         res.data.forEach((a,i)=>{
-         
             buttons += `<div class="onlypass_btn" style="z-index:9999;">
             <button 
             type="button"
@@ -353,9 +357,18 @@ const InitPayment = (isDemo = true)=>{
             padding: 10px 20px;
             border-radius: 5px;
             overflow: hidden;
-            background: white;font-weight:bold;"
+            background: #211666;
+            color:white;
+            font-weight:bold;
+            width:120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor:pointer;
+            "
             >
-            <img src="${a.gateway.logoUrl}" style="width:30px;object-fit:cover;" /> ${a.gateway.name}
+           ${a.gateway.name}
+           <img src="images/caret-down.png" style="width:10px;object-fit:cover;margin-left:10px;" /> 
             </button>
             <div id="option${i}" style="display:none;position:absolute;
             top:46px;
@@ -365,9 +378,11 @@ const InitPayment = (isDemo = true)=>{
             padding:15px;z-index:999;">
             <ul style="padding:0px;margin:0px;" >
             ${a.gateway.modes.map((b,o)=>{
-              return `<li style="display:flex;align-items:center;margin-bottom: 10px !important;">
-              <input value="${convertBinaryToHex(Object.assign(a,{mode:b}))}" id="channel${o}" type="radio" name="mode" onchange="toggleClose(this,'${i}')" style="height:18px;width: 18px;" />
-              <label style="padding-left:5px;" for="channel${o}">${String(b.channel).replace("_"," ")}</label>
+              return `<li
+              onclick="CallPayment('${convertBinaryToHex(Object.assign(a,{mode:b}))}')"
+              style="display:flex;align-items:center;margin-bottom: 10px !important;cursor:pointer;padding:5px 10px;"
+              >
+              ${String(b.channel).replace("_"," ")}
               </li>`;
             }).join("")}
             </ul>
@@ -376,16 +391,9 @@ const InitPayment = (isDemo = true)=>{
             `
         })
         buttons += "</div>";
-         buttonsWrapper.innerHTML = buttons;
-         if(String(formId).includes("#"))
-         {
-          formId = String(formId).replace("#","");
-         }
-         window.isDemo = isDemo;
-        form.appendChild(buttonsWrapper);
+        window.OnlyPassButtons = buttons;
+        window.isDemo = isDemo;
       }
-      }
-    }
     });
 }
 const convertBinaryToHex = (s)=>{
@@ -417,87 +425,65 @@ window.addEventListener("message",({data})=>{
       ifrm.style.display = "none";
     }else if(data.event == "success")
     {
-      if(webhookUrl != "")
-      {
-        ifrm.style.display = "none";
-        var OnlPssHeaders = new Headers();
-        OnlPssHeaders.append("Content-Type", "application/json");
-        OnlPssHeaders.append("Accept", "application/json");
-        var raw = JSON.stringify(data.data);
-        var requestOptions = {
-          method: 'POST',
-          headers: OnlPssHeaders,
-          body: raw,
-          redirect: 'follow'
-        };
-        fetch(webhookUrl,requestOptions);
-      }
+     
     }
   }
 })
-  const PayNow = async(
+const PayNow = async(
     amount = 0,
     memo = "",
-    gatewayId = "1",
     email = "",
     phone_number = "",
-    firstname = "",
-    lastname = "",
-    gatewayName = "Paystack",
-    currency = "NGN",
-    publicKey = "",
-    callback = ()=>{}
+    firstName = "",
+    lastName = "",
+    currency = "NGN"
    )=>{
    let refNo = UniqueID(20,"OnlyPass-");
-   let gateWayObj = {}
-   const res = await APICall({
-           gatewayId:gatewayId,
-           externalReference:refNo,
-           amount:amount,
-           isDemo:isDemo
-     })
-    
-     if(res.status)
-       {
-       gateWayObj = Object.assign(res.data,{
-         gatewayId:"",
-         externalReference:refNo,
-         amount:amount,
-         isDemo:isDemo,
-         amount:amount,
-         memo:memo,
-         email:email,
-         phone_number:phone_number,
-         firstname:firstname,
-         lastname:lastname,
-         currency:currency,
-         gatewayName:String(gatewayName).toLowerCase(),
-         publicKey:publicKey
-       })
-       console.log("PayNow:",gateWayObj)
-       if(gateWayObj.gatewayName == "paystack")
-       {
-         PayWithPaystack(gateWayObj);
-       }else if(gateWayObj.gatewayName == "flutterwave")
-       {
-       PayWithFlutterwave(gateWayObj);
-      }else if(gateWayObj.gatewayName == "squad")
-      {
-        PayWithSquad(gateWayObj);
-      }else if(gateWayObj.gatewayName == "bani")
-      {
-        PayWithBani(gateWayObj);
-      }
-     }
-     
-    //  callback(gateWayObj);
-   }
-   AddHeader()
+   if(!amount || typeof amount != "number")
+   {
+    ThrowError("A valid amount is required.")
+   }else if(!memo)
+   {
+    ThrowError("memo is required.")
+  }else if(!email || !(String(email).includes("@") && String(email).includes(".")))
+  {
+   ThrowError("A valid email is required.")
+}else if(!phone_number  || String(phone_number).length < 11)
+{
+ ThrowError("A valid mobile number is required.")
+}else if(!firstName)
+{
+ ThrowError("First name is required.")
+}else if(!lastName)
+{
+ ThrowError("Last name is required.")
+}else if(!currency)
+{
+ ThrowError("A valid currency is required.")
+}else{
+  const modal = document.getElementById("mID");
+  modal.innerHTML = window.OnlyPassButtons;
+  modal.style.display = "flex";
+  window.paymentParams = Object.assign({
+    amount:amount,
+    firstName:firstName,
+    lastName:lastName,
+    email:email,
+    mobile:phone_number,
+    memo:memo,
+    refNo:refNo,
+    currency:currency
+  })
+}
+ }
    window.OnlyPass = {
     PayNow:PayNow
    }
+   AddHeader();
 }
 
 export default OnlyPass;
-
+// window.OnlyPass = OnlyPass("pk_895a1c4e-602f-4065-9c5c-2d23c7fd202a","40835105",true);
 // })(window)
+
+
