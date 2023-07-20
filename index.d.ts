@@ -32,7 +32,6 @@ interface GateWayList extends Array<Gateway>{}
          phone_number?: string, 
          firstName?: string, 
          lastName?: string, 
-         gatewayName?: string, 
          currency?: string) => Promise<any>;
  }
  export default OnlyPass;

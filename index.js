@@ -482,9 +482,7 @@ const PayNow = async(
    AddHeader();
 }
 
-export default OnlyPass = {
-  PayNow:PayNow
-};
+export default OnlyPass;
 // window.OnlyPass = OnlyPass("pk_895a1c4e-602f-4065-9c5c-2d23c7fd202a","40835105",true);
 // })(window)
 
