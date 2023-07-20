@@ -429,60 +429,60 @@ window.addEventListener("message",({data})=>{
     }
   }
 })
-
+const PayNow = async(
+    amount = 0,
+    memo = "",
+    email = "",
+    phone_number = "",
+    firstName = "",
+    lastName = "",
+    currency = "NGN"
+   )=>{
+   let refNo = UniqueID(20,"OnlyPass-");
+   if(!amount || typeof amount != "number")
+   {
+    ThrowError("A valid amount is required.")
+   }else if(!memo)
+   {
+    ThrowError("memo is required.")
+  }else if(!email || !(String(email).includes("@") && String(email).includes(".")))
+  {
+   ThrowError("A valid email is required.")
+}else if(!phone_number  || String(phone_number).length < 11)
+{
+ ThrowError("A valid mobile number is required.")
+}else if(!firstName)
+{
+ ThrowError("First name is required.")
+}else if(!lastName)
+{
+ ThrowError("Last name is required.")
+}else if(!currency)
+{
+ ThrowError("A valid currency is required.")
+}else{
+  const modal = document.getElementById("mID");
+  modal.innerHTML = window.OnlyPassButtons;
+  modal.style.display = "flex";
+  window.paymentParams = Object.assign({
+    amount:amount,
+    firstName:firstName,
+    lastName:lastName,
+    email:email,
+    mobile:phone_number,
+    memo:memo,
+    refNo:refNo,
+    currency:currency
+  })
+}
+ }
    window.OnlyPass = {
     PayNow:PayNow
    }
    AddHeader();
 }
-export const PayNow = async(
-  amount = 0,
-  memo = "",
-  email = "",
-  phone_number = "",
-  firstName = "",
-  lastName = "",
-  currency = "NGN"
- )=>{
- let refNo = OnlyPass.UniqueID(20,"OnlyPass-");
- if(!amount || typeof amount != "number")
- {
-  ThrowError("A valid amount is required.")
- }else if(!memo)
- {
-  ThrowError("memo is required.")
-}else if(!email || !(String(email).includes("@") && String(email).includes(".")))
-{
- ThrowError("A valid email is required.")
-}else if(!phone_number  || String(phone_number).length < 11)
-{
-ThrowError("A valid mobile number is required.")
-}else if(!firstName)
-{
-ThrowError("First name is required.")
-}else if(!lastName)
-{
-ThrowError("Last name is required.")
-}else if(!currency)
-{
-ThrowError("A valid currency is required.")
-}else{
-const modal = document.getElementById("mID");
-modal.innerHTML = window.OnlyPassButtons;
-modal.style.display = "flex";
-window.paymentParams = Object.assign({
-  amount:amount,
-  firstName:firstName,
-  lastName:lastName,
-  email:email,
-  mobile:phone_number,
-  memo:memo,
-  refNo:refNo,
-  currency:currency
-})
-}
-}
-export default OnlyPass;
+
+export default OnlyPass = window.OnlyPass;
 // window.OnlyPass = OnlyPass("pk_895a1c4e-602f-4065-9c5c-2d23c7fd202a","40835105",true);
 // })(window)
 
