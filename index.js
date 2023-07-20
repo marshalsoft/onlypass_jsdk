@@ -435,7 +435,7 @@ window.addEventListener("message",({data})=>{
    }
    AddHeader();
 }
-OnlyPass.PayNow = async(
+export const PayNow = async(
   amount = 0,
   memo = "",
   email = "",
@@ -444,7 +444,7 @@ OnlyPass.PayNow = async(
   lastName = "",
   currency = "NGN"
  )=>{
- let refNo = UniqueID(20,"OnlyPass-");
+ let refNo = OnlyPass.UniqueID(20,"OnlyPass-");
  if(!amount || typeof amount != "number")
  {
   ThrowError("A valid amount is required.")
